@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>Studio Francisca Rodrigues</title>
 
+<link rel="manifest" href="manifest.json">
+
 <style>
 
 body{
@@ -14,7 +16,6 @@ padding:20px;
 
 h1{
 text-align:center;
-color:#333;
 }
 
 .container{
@@ -23,8 +24,8 @@ padding:20px;
 border-radius:10px;
 max-width:800px;
 margin:auto;
-box-shadow:0 0 10px rgba(0,0,0,0.1);
 margin-bottom:20px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
 }
 
 input,select{
@@ -38,12 +39,11 @@ border:1px solid #ccc;
 button{
 width:100%;
 padding:10px;
-margin-top:5px;
 background:#8e44ad;
-border:none;
 color:white;
-font-size:16px;
+border:none;
 border-radius:5px;
+margin-top:5px;
 }
 
 button:hover{
@@ -57,31 +57,16 @@ padding:10px;
 
 .total{
 font-size:22px;
-font-weight:bold;
 text-align:center;
-margin-top:20px;
+font-weight:bold;
 }
 
 .hidden{
 display:none;
 }
 
-.dashboard{
-display:flex;
-justify-content:space-between;
-margin-top:10px;
-}
-
-.card{
-background:#fafafa;
-padding:15px;
-border-radius:10px;
-width:30%;
-text-align:center;
-box-shadow:0 0 5px rgba(0,0,0,0.1);
-}
-
 </style>
+
 </head>
 
 <body>
@@ -103,35 +88,9 @@ box-shadow:0 0 5px rgba(0,0,0,0.1);
 
 <div class="container">
 
-<h3>Dashboard</h3>
-
-<div class="dashboard">
-
-<div class="card">
-Clientes Hoje<br>
-<span id="clientesHoje">0</span>
-</div>
-
-<div class="card">
-Faturamento<br>
-R$ <span id="faturamentoHoje">0</span>
-</div>
-
-<div class="card">
-Profissionais<br>
-<span id="totalProfissionais">0</span>
-</div>
-
-</div>
-
-</div>
-
-
-<div class="container">
-
 <h3>Cadastrar Profissional</h3>
 
-<input id="novaProfissional" placeholder="Nome da profissional">
+<input id="novaProfissional" placeholder="Nome">
 
 <input id="comissao" type="number" placeholder="Comissão %">
 
@@ -144,7 +103,7 @@ Profissionais<br>
 
 <h3>Cadastrar Serviço</h3>
 
-<input id="novoServico" placeholder="Nome do serviço">
+<input id="novoServico" placeholder="Serviço">
 
 <input id="valorServico" type="number" placeholder="Valor">
 
@@ -155,7 +114,7 @@ Profissionais<br>
 
 <div class="container">
 
-<h3>Agendar Atendimento</h3>
+<h3>Registrar Atendimento</h3>
 
 <input id="cliente" placeholder="Cliente">
 
@@ -175,7 +134,7 @@ Profissionais<br>
 <option>Cartão</option>
 </select>
 
-<button onclick="registrar()">Registrar Atendimento</button>
+<button onclick="registrar()">Registrar</button>
 
 </div>
 
@@ -187,7 +146,9 @@ Profissionais<br>
 <div id="lista"></div>
 
 <div class="total">
+
 Total Caixa: R$ <span id="total">0</span>
+
 </div>
 
 <button onclick="fecharCaixa()">Fechar Caixa</button>
@@ -270,8 +231,6 @@ s.innerHTML+=`<option value="${se.valor}">${se.nome}</option>`
 
 })
 
-document.getElementById("totalProfissionais").innerText=profissionais.length
-
 mostrar()
 
 }
@@ -310,12 +269,9 @@ lista.innerHTML=""
 
 let total=0
 
-let clientes=0
-
 atendimentos.forEach((a,i)=>{
 
 total+=a.valor
-clientes++
 
 lista.innerHTML+=`
 
@@ -335,8 +291,6 @@ R$ ${a.valor} (${a.pagamento})
 })
 
 document.getElementById("total").innerText=total.toFixed(2)
-document.getElementById("clientesHoje").innerText=clientes
-document.getElementById("faturamentoHoje").innerText=total.toFixed(2)
 
 }
 
@@ -352,7 +306,7 @@ mostrar()
 
 function fecharCaixa(){
 
-let s=prompt("Digite a senha para fechar o caixa")
+let s=prompt("Digite a senha")
 
 if(s===senhaSistema){
 
@@ -362,7 +316,7 @@ atendimentos=[]
 
 mostrar()
 
-alert("Caixa fechado!")
+alert("Caixa fechado")
 
 }else{
 
@@ -370,6 +324,11 @@ alert("Senha incorreta")
 
 }
 
+}
+
+
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.register('service-worker.js')
 }
 
 </script>
