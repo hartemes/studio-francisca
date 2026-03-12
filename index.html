@@ -22,7 +22,7 @@ text-align:center;
 background:white;
 padding:20px;
 border-radius:10px;
-max-width:800px;
+max-width:900px;
 margin:auto;
 margin-bottom:20px;
 box-shadow:0 0 10px rgba(0,0,0,0.1);
@@ -46,8 +46,8 @@ border-radius:5px;
 margin-top:5px;
 }
 
-button:hover{
-background:#732d91;
+.hidden{
+display:none;
 }
 
 .item{
@@ -57,12 +57,8 @@ padding:10px;
 
 .total{
 font-size:22px;
-text-align:center;
 font-weight:bold;
-}
-
-.hidden{
-display:none;
+text-align:center;
 }
 
 </style>
@@ -75,42 +71,18 @@ display:none;
 
 <div class="container" id="login">
 
-<h3>Login da Proprietária</h3>
+<h3>Login</h3>
 
+<input id="usuario" placeholder="Usuário">
 <input type="password" id="senha" placeholder="Senha">
 
 <button onclick="login()">Entrar</button>
 
 </div>
 
+<!-- PAINEL PROFISSIONAIS -->
 
-<div id="sistema" class="hidden">
-
-<div class="container">
-
-<h3>Cadastrar Profissional</h3>
-
-<input id="novaProfissional" placeholder="Nome">
-
-<input id="comissao" type="number" placeholder="Comissão %">
-
-<button onclick="addProfissional()">Cadastrar</button>
-
-</div>
-
-
-<div class="container">
-
-<h3>Cadastrar Serviço</h3>
-
-<input id="novoServico" placeholder="Serviço">
-
-<input id="valorServico" type="number" placeholder="Valor">
-
-<button onclick="addServico()">Cadastrar</button>
-
-</div>
-
+<div id="painelProfissional" class="hidden">
 
 <div class="container">
 
@@ -138,17 +110,53 @@ display:none;
 
 </div>
 
+</div>
+
+
+<!-- PAINEL ADMIN -->
+
+<div id="painelAdmin" class="hidden">
 
 <div class="container">
 
-<h3>Atendimentos</h3>
+<h3>Cadastrar Profissional</h3>
+
+<input id="novaProfissional" placeholder="Nome">
+<input id="comissao" type="number" placeholder="Comissão %">
+
+<button onclick="addProfissional()">Cadastrar</button>
+
+<div id="listaProfissionais"></div>
+
+</div>
+
+
+<div class="container">
+
+<h3>Cadastrar Serviço</h3>
+
+<input id="novoServico" placeholder="Serviço">
+<input id="valorServico" type="number" placeholder="Valor">
+
+<button onclick="addServico()">Cadastrar</button>
+
+<div id="listaServicos"></div>
+
+</div>
+
+
+<div class="container">
+
+<h3>Movimentação do Caixa</h3>
 
 <div id="lista"></div>
 
 <div class="total">
-
 Total Caixa: R$ <span id="total">0</span>
+</div>
 
+<div class="total">
+Total Comissão: R$ <span id="comissaoTotal">0</span>
 </div>
 
 <button onclick="fecharCaixa()">Fechar Caixa</button>
@@ -160,28 +168,67 @@ Total Caixa: R$ <span id="total">0</span>
 
 <script>
 
-let senhaSistema="1234"
-
 let profissionais=JSON.parse(localStorage.getItem("profissionais"))||[]
 let servicos=JSON.parse(localStorage.getItem("servicos"))||[]
 let atendimentos=JSON.parse(localStorage.getItem("atendimentos"))||[]
 
 function login(){
 
+let u=document.getElementById("usuario").value
 let s=document.getElementById("senha").value
 
-if(s===senhaSistema){
+if(u==="admin" && s==="1234"){
 
 document.getElementById("login").classList.add("hidden")
-document.getElementById("sistema").classList.remove("hidden")
+document.getElementById("painelAdmin").classList.remove("hidden")
 
 carregar()
 
-}else{
+}
 
-alert("Senha incorreta")
+else if(u==="profissional" && s==="1234"){
+
+document.getElementById("login").classList.add("hidden")
+document.getElementById("painelProfissional").classList.remove("hidden")
+
+carregar()
 
 }
+
+else{
+
+alert("Login inválido")
+
+}
+
+}
+
+function carregar(){
+
+let p=document.getElementById("profissional")
+let s=document.getElementById("servico")
+
+if(p && s){
+
+p.innerHTML=""
+s.innerHTML=""
+
+profissionais.forEach(pr=>{
+
+p.innerHTML+=`<option>${pr.nome}</option>`
+
+})
+
+servicos.forEach(se=>{
+
+s.innerHTML+=`<option value="${se.valor}">${se.nome}</option>`
+
+})
+
+}
+
+listarCadastros()
+mostrar()
 
 }
 
@@ -211,35 +258,59 @@ carregar()
 
 }
 
-function carregar(){
+function listarCadastros(){
 
-let p=document.getElementById("profissional")
-let s=document.getElementById("servico")
+let lp=document.getElementById("listaProfissionais")
+let ls=document.getElementById("listaServicos")
 
-p.innerHTML=""
-s.innerHTML=""
+if(!lp || !ls) return
 
-profissionais.forEach(pr=>{
+lp.innerHTML="<b>Profissionais</b>"
+ls.innerHTML="<b>Serviços</b>"
 
-p.innerHTML+=`<option>${pr.nome}</option>`
+profissionais.forEach((p,i)=>{
+
+lp.innerHTML+=`
+<div class="item">
+${p.nome} (${p.comissao}%)
+<button onclick="excluirProfissional(${i})">Excluir</button>
+</div>
+`
 
 })
 
-servicos.forEach(se=>{
+servicos.forEach((s,i)=>{
 
-s.innerHTML+=`<option value="${se.valor}">${se.nome}</option>`
+ls.innerHTML+=`
+<div class="item">
+${s.nome} - R$ ${s.valor}
+<button onclick="excluirServico(${i})">Excluir</button>
+</div>
+`
 
 })
-
-mostrar()
 
 }
 
-document.getElementById("servico").addEventListener("change",function(){
+function excluirProfissional(i){
 
-document.getElementById("valor").value=this.value
+profissionais.splice(i,1)
 
-})
+localStorage.setItem("profissionais",JSON.stringify(profissionais))
+
+carregar()
+
+}
+
+function excluirServico(i){
+
+servicos.splice(i,1)
+
+localStorage.setItem("servicos",JSON.stringify(servicos))
+
+carregar()
+
+}
 
 function registrar(){
 
@@ -251,13 +322,17 @@ let pagamento=document.getElementById("pagamento").value
 let data=document.getElementById("data").value
 let hora=document.getElementById("hora").value
 
-let at={cliente,profissional,servico,valor,pagamento,data,hora}
+let prof=profissionais.find(p=>p.nome===profissional)
+
+let comissao=(valor*(prof.comissao/100))
+
+let at={cliente,profissional,servico,valor,pagamento,data,hora,comissao}
 
 atendimentos.push(at)
 
 localStorage.setItem("atendimentos",JSON.stringify(atendimentos))
 
-mostrar()
+alert("Atendimento registrado")
 
 }
 
@@ -265,24 +340,26 @@ function mostrar(){
 
 let lista=document.getElementById("lista")
 
+if(!lista) return
+
 lista.innerHTML=""
 
 let total=0
+let totalComissao=0
 
-atendimentos.forEach((a,i)=>{
+atendimentos.forEach(a=>{
 
 total+=a.valor
+totalComissao+=a.comissao
 
 lista.innerHTML+=`
 
 <div class="item">
 
-<b>${a.cliente}</b><br>
-${a.servico} - ${a.profissional}<br>
+${a.cliente} - ${a.servico}<br>
+${a.profissional}<br>
 ${a.data} ${a.hora}<br>
-R$ ${a.valor} (${a.pagamento})
-
-<button onclick="excluir(${i})">Excluir</button>
+R$ ${a.valor}
 
 </div>
 
@@ -291,24 +368,13 @@ R$ ${a.valor} (${a.pagamento})
 })
 
 document.getElementById("total").innerText=total.toFixed(2)
-
-}
-
-function excluir(i){
-
-atendimentos.splice(i,1)
-
-localStorage.setItem("atendimentos",JSON.stringify(atendimentos))
-
-mostrar()
+document.getElementById("comissaoTotal").innerText=totalComissao.toFixed(2)
 
 }
 
 function fecharCaixa(){
 
-let s=prompt("Digite a senha")
-
-if(s===senhaSistema){
+if(confirm("Fechar caixa?")){
 
 localStorage.removeItem("atendimentos")
 
@@ -316,19 +382,8 @@ atendimentos=[]
 
 mostrar()
 
-alert("Caixa fechado")
-
-}else{
-
-alert("Senha incorreta")
-
 }
 
-}
-
-
-if ('serviceWorker' in navigator) {
-navigator.serviceWorker.register('service-worker.js')
 }
 
 </script>
