@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Studio Francisca Rodrigues</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f2f2f2;
+padding:20px;
+}
+
+h1{
+text-align:center;
+color:#333;
+}
+
+.container{
+background:white;
+padding:20px;
+border-radius:10px;
+max-width:800px;
+margin:auto;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+input,select{
+width:100%;
+padding:10px;
+margin:5px 0;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:5px;
+background:#8e44ad;
+border:none;
+color:white;
+font-size:16px;
+border-radius:5px;
+}
+
+button:hover{
+background:#732d91;
+}
+
+.item{
+border-bottom:1px solid #ddd;
+padding:10px;
+}
+
+.total{
+font-size:22px;
+font-weight:bold;
+text-align:center;
+margin-top:20px;
+}
+
+.hidden{
+display:none;
+}
+
+.dashboard{
+display:flex;
+justify-content:space-between;
+margin-top:10px;
+}
+
+.card{
+background:#fafafa;
+padding:15px;
+border-radius:10px;
+width:30%;
+text-align:center;
+box-shadow:0 0 5px rgba(0,0,0,0.1);
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Studio Francisca Rodrigues</h1>
+
+<div class="container" id="login">
+
+<h3>Login da Proprietária</h3>
+
+<input type="password" id="senha" placeholder="Senha">
+
+<button onclick="login()">Entrar</button>
+
+</div>
+
+
+<div id="sistema" class="hidden">
+
+<div class="container">
+
+<h3>Dashboard</h3>
+
+<div class="dashboard">
+
+<div class="card">
+Clientes Hoje<br>
+<span id="clientesHoje">0</span>
+</div>
+
+<div class="card">
+Faturamento<br>
+R$ <span id="faturamentoHoje">0</span>
+</div>
+
+<div class="card">
+Profissionais<br>
+<span id="totalProfissionais">0</span>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="container">
+
+<h3>Cadastrar Profissional</h3>
+
+<input id="novaProfissional" placeholder="Nome da profissional">
+
+<input id="comissao" type="number" placeholder="Comissão %">
+
+<button onclick="addProfissional()">Cadastrar</button>
+
+</div>
+
+
+<div class="container">
+
+<h3>Cadastrar Serviço</h3>
+
+<input id="novoServico" placeholder="Nome do serviço">
+
+<input id="valorServico" type="number" placeholder="Valor">
+
+<button onclick="addServico()">Cadastrar</button>
+
+</div>
+
+
+<div class="container">
+
+<h3>Agendar Atendimento</h3>
+
+<input id="cliente" placeholder="Cliente">
+
+<select id="profissional"></select>
+
+<select id="servico"></select>
+
+<input type="date" id="data">
+
+<input type="time" id="hora">
+
+<input id="valor" type="number" placeholder="Valor">
+
+<select id="pagamento">
+<option>Pix</option>
+<option>Dinheiro</option>
+<option>Cartão</option>
+</select>
+
+<button onclick="registrar()">Registrar Atendimento</button>
+
+</div>
+
+
+<div class="container">
+
+<h3>Atendimentos</h3>
+
+<div id="lista"></div>
+
+<div class="total">
+Total Caixa: R$ <span id="total">0</span>
+</div>
+
+<button onclick="fecharCaixa()">Fechar Caixa</button>
+
+</div>
+
+</div>
+
+
+<script>
+
+let senhaSistema="1234"
+
+let profissionais=JSON.parse(localStorage.getItem("profissionais"))||[]
+let servicos=JSON.parse(localStorage.getItem("servicos"))||[]
+let atendimentos=JSON.parse(localStorage.getItem("atendimentos"))||[]
+
+function login(){
+
+let s=document.getElementById("senha").value
+
+if(s===senhaSistema){
+
+document.getElementById("login").classList.add("hidden")
+document.getElementById("sistema").classList.remove("hidden")
+
+carregar()
+
+}else{
+
+alert("Senha incorreta")
+
+}
+
+}
+
+function addProfissional(){
+
+let nome=document.getElementById("novaProfissional").value
+let comissao=document.getElementById("comissao").value
+
+profissionais.push({nome,comissao})
+
+localStorage.setItem("profissionais",JSON.stringify(profissionais))
+
+carregar()
+
+}
+
+function addServico(){
+
+let nome=document.getElementById("novoServico").value
+let valor=document.getElementById("valorServico").value
+
+servicos.push({nome,valor})
+
+localStorage.setItem("servicos",JSON.stringify(servicos))
+
+carregar()
+
+}
+
+function carregar(){
+
+let p=document.getElementById("profissional")
+let s=document.getElementById("servico")
+
+p.innerHTML=""
+s.innerHTML=""
+
+profissionais.forEach(pr=>{
+
+p.innerHTML+=`<option>${pr.nome}</option>`
+
+})
+
+servicos.forEach(se=>{
+
+s.innerHTML+=`<option value="${se.valor}">${se.nome}</option>`
+
+})
+
+document.getElementById("totalProfissionais").innerText=profissionais.length
+
+mostrar()
+
+}
+
+document.getElementById("servico").addEventListener("change",function(){
+
+document.getElementById("valor").value=this.value
+
+})
+
+function registrar(){
+
+let cliente=document.getElementById("cliente").value
+let profissional=document.getElementById("profissional").value
+let servico=document.getElementById("servico").selectedOptions[0].text
+let valor=parseFloat(document.getElementById("valor").value)
+let pagamento=document.getElementById("pagamento").value
+let data=document.getElementById("data").value
+let hora=document.getElementById("hora").value
+
+let at={cliente,profissional,servico,valor,pagamento,data,hora}
+
+atendimentos.push(at)
+
+localStorage.setItem("atendimentos",JSON.stringify(atendimentos))
+
+mostrar()
+
+}
+
+function mostrar(){
+
+let lista=document.getElementById("lista")
+
+lista.innerHTML=""
+
+let total=0
+
+let clientes=0
+
+atendimentos.forEach((a,i)=>{
+
+total+=a.valor
+clientes++
+
+lista.innerHTML+=`
+
+<div class="item">
+
+<b>${a.cliente}</b><br>
+${a.servico} - ${a.profissional}<br>
+${a.data} ${a.hora}<br>
+R$ ${a.valor} (${a.pagamento})
+
+<button onclick="excluir(${i})">Excluir</button>
+
+</div>
+
+`
+
+})
+
+document.getElementById("total").innerText=total.toFixed(2)
+document.getElementById("clientesHoje").innerText=clientes
+document.getElementById("faturamentoHoje").innerText=total.toFixed(2)
+
+}
+
+function excluir(i){
+
+atendimentos.splice(i,1)
+
+localStorage.setItem("atendimentos",JSON.stringify(atendimentos))
+
+mostrar()
+
+}
+
+function fecharCaixa(){
+
+let s=prompt("Digite a senha para fechar o caixa")
+
+if(s===senhaSistema){
+
+localStorage.removeItem("atendimentos")
+
+atendimentos=[]
+
+mostrar()
+
+alert("Caixa fechado!")
+
+}else{
+
+alert("Senha incorreta")
+
+}
+
+}
+
+</script>
+
+</body>
+</html>
